@@ -1,0 +1,22 @@
+cd /home/antonmry/go/src/github.com/hashicorp/vault-auth-plugin-gitlab/cmd/vault-auth-plugin-gitlab
+go install
+
+export VAULT_ADDR="http://127.0.0.1:8200/"
+vault server -config=./config.json
+
+vault operator unseal 56873019a1c6d2077d2350a796549de50b35216a7ec782d6594daac9894101a6
+
+vault login 2zSCLwEwMZFB5oGMDjVBvCyE
+
+export SHA256=$(shasum -a 256 "$GOBIN/vault-auth-plugin-gitlab" | cut -d' ' -f1) && echo -n $SHA256
+vault write sys/plugins/catalog/gitlab sha_256="${SHA256}" command="vault-auth-plugin-gitlab"
+
+vault auth enable -plugin-name='gitlab' plugin
+
+vault write auth/gitlab/config organization=OptareSolutions
+
+
+// This doesn't work!
+vault login -method=github token="MY_TOKEN"
+
+vault write auth/gitlab/login token="my-super-token"
